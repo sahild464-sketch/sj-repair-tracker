@@ -114,6 +114,22 @@
 <main>
   <div class="count-strip" id="countStrip"></div>
 
+  <div class="panel" id="monthlyPanel">
+    <h2>Monthly Net Balance</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th><th>Repairs</th><th>Total Wt In</th><th>Total Wt Out</th><th>Net Balance</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyBody"></tbody>
+      </table>
+      <div class="empty" id="monthlyEmpty" style="display:none;">No repairs with both Wt In and Wt Out yet.</div>
+    </div>
+    <div class="hint">Grouped by Date In. Only rows with both Wt In and Wt Out filled in are counted — net balance is Wt Out minus Wt In, summed per month.</div>
+  </div>
+
   <div class="panel" id="addPanel">
     <h2>New Repair</h2>
     <div class="grid">
@@ -294,6 +310,51 @@ function canEditWtOut(r){
 }
 function fmtNum(v){ return (v==='' || v===null || v===undefined) ? '' : v; }
 
+function isNum(v){ return v !== '' && v !== null && v !== undefined && !isNaN(parseFloat(v)); }
+
+function renderMonthlyBalance(){
+  const tbody = document.getElementById('monthlyBody');
+  const empty = document.getElementById('monthlyEmpty');
+
+  const byMonth = {};
+  repairs.forEach(r=>{
+    if(!isNum(r.wtIn) || !isNum(r.wtOut)) return;
+    if(!r.date) return;
+    const month = r.date.slice(0,7); // YYYY-MM
+    if(!byMonth[month]) byMonth[month] = {count:0, wtIn:0, wtOut:0};
+    byMonth[month].count++;
+    byMonth[month].wtIn += parseFloat(r.wtIn);
+    byMonth[month].wtOut += parseFloat(r.wtOut);
+  });
+
+  const months = Object.keys(byMonth).sort().reverse();
+  if(months.length === 0){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const fmt = (n)=> n.toFixed(2) + 'g';
+  const monthLabel = (m)=>{
+    const [y,mo] = m.split('-');
+    return new Date(parseInt(y), parseInt(mo)-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  };
+
+  tbody.innerHTML = months.map(m=>{
+    const d = byMonth[m];
+    const net = d.wtOut - d.wtIn;
+    const cls = net > 0 ? 'balance-pos' : net < 0 ? 'balance-neg' : 'balance-zero';
+    return `<tr>
+      <td>${monthLabel(m)}</td>
+      <td>${d.count}</td>
+      <td>${fmt(d.wtIn)}</td>
+      <td>${fmt(d.wtOut)}</td>
+      <td class="${cls}">${(net>0?'+':'')}${fmt(net)}</td>
+    </tr>`;
+  }).join('');
+}
+
 function render(){
   const counts = {all:repairs.length, pending:0, ready:0, confirmed:0};
   repairs.forEach(r=>{ counts[statusOf(r)]++; });
@@ -368,6 +429,8 @@ function render(){
 
   tbody.querySelectorAll('input').forEach(inp=> inp.addEventListener('change', onFieldChange));
   tbody.querySelectorAll('[data-action]').forEach(btn=> btn.addEventListener('click', onAction));
+
+  renderMonthlyBalance();
 }
 
 function getRow(id){ return repairs.find(r=>r.id===id); }
