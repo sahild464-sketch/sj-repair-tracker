@@ -111,7 +111,18 @@
   </div>
 </header>
 
+<div id="tabNav" style="display:none;background:#fff;border-bottom:1px solid var(--line);padding:0 28px;">
+  <div style="max-width:1500px;margin:0 auto;display:flex;gap:4px;">
+    <button class="tab-btn active" id="tabRepairsBtn" data-tab="repairs">Repairs</button>
+    <button class="tab-btn" id="tabReservesBtn" data-tab="reserves" style="display:none;">Reserves</button>
+    <button class="tab-btn" id="tabWSBtn" data-tab="workshop">Workshop Orders</button>
+    <button class="tab-btn" id="tabTCBtn" data-tab="tc" style="display:none;">TC</button>
+  </div>
+</div>
+
 <main>
+
+<div id="repairsView">
   <div class="count-strip" id="countStrip"></div>
 
   <div class="panel" id="monthlyPanel">
@@ -168,7 +179,160 @@
       <div class="empty" id="emptyState" style="display:none;">No repairs match this view yet.</div>
     </div>
   </div>
+</div>
+
+<div id="reservesView" style="display:none;">
+  <div class="count-strip" id="reserveCountStrip"></div>
+
+  <div class="panel" id="addReservePanel">
+    <h2>New Reserve</h2>
+    <div class="grid">
+      <div class="field"><label>Date</label><input type="date" id="rv_date"></div>
+      <div class="field"><label>Reserve #</label><input type="text" id="rv_num" placeholder="e.g. 4512"></div>
+      <div class="field"><label>Client Name</label><input type="text" id="rv_name" placeholder="Client name"></div>
+      <div class="field"><label>Weight (g)</label><input type="number" step="0.01" id="rv_weight" placeholder="Optional"></div>
+      <div class="field"><label>Deposit Amount (KSh)</label><input type="number" step="1" id="rv_amount" placeholder="Optional"></div>
+      <div class="field"><label>Notes</label><input type="text" id="rv_notes" placeholder="What's being held"></div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-primary" id="addReserveBtn">Add Reserve</button></div>
+    <div class="hint">Sales opens and can close a reserve (with outcome). Admin confirms and locks the closed transaction.</div>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <div class="filters" id="reserveFilters"></div>
+      <div class="search"><input type="text" id="reserveSearchBox" placeholder="Search name, reserve #, notes..."></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th><th>Date</th><th>Reserve #</th><th>Client</th><th>Weight</th><th>Amount</th>
+            <th>Notes</th><th>Date Out</th><th>Outcome</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reserveTbody"></tbody>
+      </table>
+      <div class="empty" id="reserveEmptyState" style="display:none;">No reserves match this view yet.</div>
+    </div>
+  </div>
+</div>
+
+<div id="workshopView" style="display:none;">
+  <div class="count-strip" id="wsCountStrip"></div>
+
+  <div class="panel" id="wsMonthlyPanel">
+    <h2>Workshop Orders — Monthly Breakdown</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th><th>Pure</th><th>22Ct</th><th>18Ct</th><th>14Ct</th><th>9Ct</th><th>Silver</th>
+            <th>Pure-Gold Equiv.</th><th>Labour (KSh)</th>
+          </tr>
+        </thead>
+        <tbody id="wsMonthlyBody"></tbody>
+      </table>
+      <div class="empty" id="wsMonthlyEmpty" style="display:none;">No verified workshop orders yet.</div>
+    </div>
+    <div class="hint">Grouped by date. Pure-gold equivalent converts 22ct/18ct/14ct/9ct using standard purity factors (0.916 / 0.750 / 0.585 / 0.375); silver is shown separately and not converted into gold weight.</div>
+  </div>
+
+  <div class="panel" id="addWSPanel">
+    <h2>New Workshop Order</h2>
+    <div class="grid">
+      <div class="field"><label>Date</label><input type="date" id="ws_date"></div>
+      <div class="field"><label>Receipt #</label><input type="text" id="ws_receiptNum" placeholder="e.g. 412"></div>
+      <div class="field">
+        <label>Karat</label>
+        <select id="ws_karat">
+          <option value="">Select…</option>
+          <option value="Pure">Pure</option>
+          <option value="22Ct">22Ct</option>
+          <option value="18Ct">18Ct</option>
+          <option value="14Ct">14Ct</option>
+          <option value="9Ct">9Ct</option>
+          <option value="Silver">Silver</option>
+        </select>
+      </div>
+      <div class="field"><label>Weight (g)</label><input type="number" step="0.01" id="ws_weight" placeholder="0.00"></div>
+      <div class="field"><label>Labour Amount (KSh)</label><input type="number" step="1" id="ws_labour" placeholder="0"></div>
+      <div class="field"><label>Notes</label><input type="text" id="ws_notes" placeholder="Optional"></div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-primary" id="addWSBtn">Add Order</button></div>
+    <div class="hint">Workshop logs the order in. Sales acknowledges receipt (no edits). Admin verifies and locks.</div>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <div class="filters" id="wsFilters"></div>
+      <div class="search"><input type="text" id="wsSearchBox" placeholder="Search receipt #, karat, notes..."></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th><th>Date</th><th>Receipt #</th><th>Karat</th><th>Weight</th>
+            <th>Labour (KSh)</th><th>Notes</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="wsTbody"></tbody>
+      </table>
+      <div class="empty" id="wsEmptyState" style="display:none;">No workshop orders match this view yet.</div>
+    </div>
+  </div>
+</div>
+
+<div id="tcView" style="display:none;">
+  <div class="count-strip" id="tcCountStrip"></div>
+
+  <div class="panel" id="addTCPanel">
+    <h2>New TC</h2>
+    <div class="grid">
+      <div class="field"><label>Date</label><input type="date" id="tc_date"></div>
+      <div class="field"><label>TC #</label><input type="text" id="tc_num" placeholder="e.g. 412"></div>
+      <div class="field"><label>Client Name</label><input type="text" id="tc_name" placeholder="Client name"></div>
+      <div class="field"><label>Weight (g)</label><input type="number" step="0.01" id="tc_weight" placeholder="Optional"></div>
+      <div class="field"><label>Amount (KSh)</label><input type="number" step="1" id="tc_amount" placeholder="Optional"></div>
+      <div class="field"><label>Notes</label><input type="text" id="tc_notes" placeholder="What's being held"></div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-primary" id="addTCBtn">Add TC</button></div>
+    <div class="hint">Sales opens and can close a TC (with outcome), and can still edit it after Admin confirms — doing so sends it back for re-verification. Admin confirms and locks the closed transaction.</div>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <div class="filters" id="tcFilters"></div>
+      <div class="search"><input type="text" id="tcSearchBox" placeholder="Search name, TC #, notes..."></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th><th>Date</th><th>TC #</th><th>Client</th><th>Weight</th><th>Amount</th>
+            <th>Notes</th><th>Date Cleared</th><th>Outcome</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tcTbody"></tbody>
+      </table>
+      <div class="empty" id="tcEmptyState" style="display:none;">No TCs match this view yet.</div>
+    </div>
+  </div>
+</div>
+
 </main>
+
+<style>
+  .tab-btn{
+    background:transparent;border:none;border-bottom:3px solid transparent;
+    padding:14px 18px 11px;font-size:13.5px;font-weight:600;color:var(--muted);
+    cursor:pointer;font-family:inherit;
+  }
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--emerald);}
+  .tab-btn:hover:not(.active){color:var(--navy);}
+  .badge-closed{background:#E4E0F7;color:#4B3D9E;}
+  .badge-received{background:#FBE9D9;color:#8A5A20;}
+</style>
 
 <div class="toast" id="toast"></div>
 
@@ -196,6 +360,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const REPAIRS_COL = collection(db, 'repairs');
+const RESERVES_COL = collection(db, 'reserves');
+const WS_COL = collection(db, 'workshopOrders');
+const TC_COL = collection(db, 'tcs');
 
 // Each "role" maps to a real Firebase Auth account created in the console.
 const ROLE_EMAILS = {
@@ -208,10 +375,23 @@ const EMAIL_TO_ROLE = Object.fromEntries(Object.entries(ROLE_EMAILS).map(([k,v])
 // ----------------------------------------------------------------------
 
 let repairs = [];     // local cache of {id, ...fields}
+let reserves = [];
+let wsOrders = [];
+let tcs = [];
 let role = null;
 let activeFilter = 'all';
 let searchTerm = '';
+let reserveActiveFilter = 'all';
+let reserveSearchTerm = '';
+let wsActiveFilter = 'all';
+let wsSearchTerm = '';
+let tcActiveFilter = 'all';
+let tcSearchTerm = '';
+let activeTab = 'repairs';
 let unsubscribe = null;
+let unsubscribeReserves = null;
+let unsubscribeWS = null;
+let unsubscribeTC = null;
 
 const tbody = document.getElementById('tbody');
 const emptyState = document.getElementById('emptyState');
@@ -261,15 +441,53 @@ onAuthStateChanged(auth, (user)=>{
     document.getElementById('roleBox').style.display = 'flex';
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('loginPassword').value = '';
+    document.getElementById('tabNav').style.display = 'block';
+
+    const canSeeReserves = (role === 'sales' || role === 'admin');
+    document.getElementById('tabReservesBtn').style.display = canSeeReserves ? 'inline-block' : 'none';
+    document.getElementById('tabTCBtn').style.display = canSeeReserves ? 'inline-block' : 'none';
+    if(!canSeeReserves) switchTab('repairs');
+
+    // Workshop can only see/create their own entries — hide the New Order
+    // form for sales (they only acknowledge, never create).
+    document.getElementById('addWSPanel').style.display = (role === 'sales') ? 'none' : 'block';
+
     startListening();
+    if(canSeeReserves) startListeningReserves();
+    if(canSeeReserves) startListeningTC();
+    startListeningWS();
   } else {
     role = null;
     document.getElementById('roleBox').style.display = 'none';
+    document.getElementById('tabNav').style.display = 'none';
     document.getElementById('loginOverlay').style.display = 'flex';
     if(unsubscribe){ unsubscribe(); unsubscribe = null; }
+    if(unsubscribeReserves){ unsubscribeReserves(); unsubscribeReserves = null; }
+    if(unsubscribeWS){ unsubscribeWS(); unsubscribeWS = null; }
+    if(unsubscribeTC){ unsubscribeTC(); unsubscribeTC = null; }
     repairs = [];
+    reserves = [];
+    wsOrders = [];
+    tcs = [];
+    switchTab('repairs');
   }
 });
+
+function switchTab(tab){
+  activeTab = tab;
+  document.getElementById('repairsView').style.display = tab==='repairs' ? 'block' : 'none';
+  document.getElementById('reservesView').style.display = tab==='reserves' ? 'block' : 'none';
+  document.getElementById('workshopView').style.display = tab==='workshop' ? 'block' : 'none';
+  document.getElementById('tcView').style.display = tab==='tc' ? 'block' : 'none';
+  document.getElementById('tabRepairsBtn').classList.toggle('active', tab==='repairs');
+  document.getElementById('tabReservesBtn').classList.toggle('active', tab==='reserves');
+  document.getElementById('tabWSBtn').classList.toggle('active', tab==='workshop');
+  document.getElementById('tabTCBtn').classList.toggle('active', tab==='tc');
+}
+document.getElementById('tabRepairsBtn').addEventListener('click', ()=> switchTab('repairs'));
+document.getElementById('tabReservesBtn').addEventListener('click', ()=> switchTab('reserves'));
+document.getElementById('tabWSBtn').addEventListener('click', ()=> switchTab('workshop'));
+document.getElementById('tabTCBtn').addEventListener('click', ()=> switchTab('tc'));
 
 // ---------------- Firestore live sync ----------------
 function startListening(){
@@ -282,6 +500,36 @@ function startListening(){
   }, (err)=>{
     syncDot.classList.add('off');
     syncLabel.textContent = 'Connection issue';
+    console.error(err);
+  });
+}
+
+function startListeningReserves(){
+  if(unsubscribeReserves) return;
+  unsubscribeReserves = onSnapshot(RESERVES_COL, (snap)=>{
+    reserves = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderReserves();
+  }, (err)=>{
+    console.error(err);
+  });
+}
+
+function startListeningTC(){
+  if(unsubscribeTC) return;
+  unsubscribeTC = onSnapshot(TC_COL, (snap)=>{
+    tcs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTC();
+  }, (err)=>{
+    console.error(err);
+  });
+}
+
+function startListeningWS(){
+  if(unsubscribeWS) return;
+  unsubscribeWS = onSnapshot(WS_COL, (snap)=>{
+    wsOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderWS();
+  }, (err)=>{
     console.error(err);
   });
 }
@@ -616,6 +864,598 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
   try{ await importFromExcel(file); }
   catch(err){ showToast('Import failed — check the file format'); console.error(err); }
   e.target.value = '';
+});
+
+// =================== RESERVE TRACKER ===================
+const OUTCOME_LABELS = {
+  converted: 'Converted to Sale',
+  refunded: 'Refunded',
+  forfeited: 'Forfeited / Cancelled'
+};
+
+function reserveStatusOf(r){
+  if(r.confirmed) return 'confirmed';
+  if(r.dateOut) return 'closed';
+  return 'open';
+}
+function reserveBadge(status){
+  const map = {
+    open:['badge-pending','Open'],
+    closed:['badge-closed','Closed — Pending Confirmation'],
+    confirmed:['badge-confirmed','Confirmed & Locked']
+  };
+  const [cls,label] = map[status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function reserveCanEditOpenFields(r){
+  // Sales and admin can always edit the figures, even after confirmation —
+  // a sales edit on a confirmed reserve will automatically send it back
+  // for admin re-verification (see onReserveFieldChange).
+  return role === 'sales' || role === 'admin';
+}
+function reserveCanClose(r){
+  if(role !== 'sales' && role !== 'admin') return false;
+  return true;
+}
+
+function renderReserves(){
+  const counts = {all:reserves.length, open:0, closed:0, confirmed:0};
+  reserves.forEach(r=>{ counts[reserveStatusOf(r)]++; });
+
+  const openWeight = reserves.filter(r=>reserveStatusOf(r)!=='confirmed' && isNum(r.weight))
+    .reduce((s,r)=>s+parseFloat(r.weight),0);
+  const openAmount = reserves.filter(r=>reserveStatusOf(r)!=='confirmed' && isNum(r.amount))
+    .reduce((s,r)=>s+parseFloat(r.amount),0);
+
+  document.getElementById('reserveCountStrip').innerHTML = `
+    <div class="count-card"><div class="n">${counts.all}</div><div class="l">Total</div></div>
+    <div class="count-card"><div class="n">${counts.open}</div><div class="l">Open</div></div>
+    <div class="count-card"><div class="n">${counts.closed}</div><div class="l">Pending Confirmation</div></div>
+    <div class="count-card"><div class="n">${counts.confirmed}</div><div class="l">Confirmed</div></div>
+    <div class="count-card"><div class="n">${openWeight.toFixed(2)}g</div><div class="l">Weight Held (Open)</div></div>
+    <div class="count-card"><div class="n">KSh ${openAmount.toLocaleString()}</div><div class="l">Deposits Held (Open)</div></div>
+  `;
+
+  const filtersEl2 = document.getElementById('reserveFilters');
+  filtersEl2.innerHTML = ['all','open','closed','confirmed'].map(f=>{
+    const labels = {all:'All',open:'Open',closed:'Pending Confirmation',confirmed:'Confirmed'};
+    return `<div class="filter-chip ${reserveActiveFilter===f?'active':''}" data-filter="${f}">${labels[f]}</div>`;
+  }).join('');
+  filtersEl2.querySelectorAll('.filter-chip').forEach(el=>{
+    el.onclick = ()=>{ reserveActiveFilter = el.dataset.filter; renderReserves(); };
+  });
+
+  let rows = reserves.slice().sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b._created||0)-(a._created||0));
+  if(reserveActiveFilter !== 'all') rows = rows.filter(r=>reserveStatusOf(r)===reserveActiveFilter);
+  if(reserveSearchTerm){
+    const t = reserveSearchTerm.toLowerCase();
+    rows = rows.filter(r =>
+      (r.name||'').toLowerCase().includes(t) ||
+      (r.reserveNum||'').toLowerCase().includes(t) ||
+      (r.notes||'').toLowerCase().includes(t)
+    );
+  }
+
+  const tbodyEl = document.getElementById('reserveTbody');
+  const emptyEl = document.getElementById('reserveEmptyState');
+  if(rows.length === 0){ tbodyEl.innerHTML=''; emptyEl.style.display='block'; return; }
+  emptyEl.style.display = 'none';
+
+  tbodyEl.innerHTML = rows.map(r=>{
+    const status = reserveStatusOf(r);
+    const editable = reserveCanEditOpenFields(r); // sales or admin, any status
+    const editAdminOnly = role === 'admin';
+
+    const outcomeSelect = `<select data-field="outcome" ${editable ? '' : 'disabled'}>
+        <option value="">—</option>
+        ${Object.entries(OUTCOME_LABELS).map(([k,v])=>`<option value="${k}" ${r.outcome===k?'selected':''}>${v}</option>`).join('')}
+      </select>`;
+
+    return `<tr data-id="${r.id}">
+      <td>${reserveBadge(status)}</td>
+      <td><input type="date" value="${r.date||''}" data-field="date" ${editable?'':'disabled'}></td>
+      <td><input type="text" value="${r.reserveNum||''}" data-field="reserveNum" style="width:70px" ${editable?'':'disabled'}></td>
+      <td><input type="text" value="${r.name||''}" data-field="name" style="min-width:120px" ${editable?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="0.01" value="${fmtNum(r.weight)}" data-field="weight" style="width:70px" ${editable?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="1" value="${fmtNum(r.amount)}" data-field="amount" style="width:90px" ${editable?'':'disabled'}></td>
+      <td><input type="text" value="${r.notes||''}" data-field="notes" style="min-width:120px" ${editable?'':'disabled'}></td>
+      <td><input type="date" value="${r.dateOut||''}" data-field="dateOut" ${editable?'':'disabled'}></td>
+      <td>${outcomeSelect}</td>
+      <td class="row-actions">
+        ${role==='admin' ? (r.confirmed
+          ? `<button class="btn btn-unlock" data-action="rv-unlock">Unlock</button>`
+          : `<button class="btn btn-lock" data-action="rv-confirm" ${status==='closed'?'':'disabled'}>Confirm</button>`)
+          : ''}
+        ${role==='admin' ? `<button class="btn btn-ghost" data-action="rv-delete">✕</button>` : ''}
+        ${role==='sales' && r.confirmed ? `<span class="hint" style="margin:0;">Editing will send back for re-verification</span>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  tbodyEl.querySelectorAll('input,select').forEach(inp=> inp.addEventListener('change', onReserveFieldChange));
+  tbodyEl.querySelectorAll('[data-action]').forEach(btn=> btn.addEventListener('click', onReserveAction));
+}
+
+function getReserve(id){ return reserves.find(r=>r.id===id); }
+
+async function onReserveFieldChange(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const field = e.target.dataset.field;
+  const r = getReserve(id);
+  if(!r) return;
+  const payload = { [field]: e.target.value };
+  if(role === 'sales' && r.confirmed){
+    // Editing a confirmed reserve as Sales sends it back for re-verification.
+    payload.confirmed = false;
+  }
+  try{
+    await updateDoc(doc(db,'reserves',id), payload);
+    showToast(payload.confirmed === false && r.confirmed
+      ? 'Saved — sent back to Admin for re-verification'
+      : 'Saved');
+  }catch(err){
+    showToast('Could not save — permission denied or offline');
+    console.error(err);
+    renderReserves();
+  }
+}
+
+async function onReserveAction(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const action = e.target.dataset.action;
+  const r = getReserve(id);
+  if(!r) return;
+  try{
+    if(action === 'rv-confirm'){
+      await updateDoc(doc(db,'reserves',id), { confirmed: true, confirmedAt: serverTimestamp() });
+      showToast('Reserve confirmed and locked');
+    }
+    if(action === 'rv-unlock'){
+      await updateDoc(doc(db,'reserves',id), { confirmed: false });
+      showToast('Reserve unlocked for editing');
+    }
+    if(action === 'rv-delete'){
+      if(!confirm('Delete this reserve entry? This cannot be undone.')) return;
+      await deleteDoc(doc(db,'reserves',id));
+      showToast('Deleted');
+    }
+  }catch(err){
+    showToast('Action failed — permission denied or offline');
+    console.error(err);
+  }
+}
+
+document.getElementById('addReserveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('rv_name').value.trim();
+  const reserveNum = document.getElementById('rv_num').value.trim();
+  if(!name || !reserveNum){ showToast('Client name and reserve # are required'); return; }
+  const weight = document.getElementById('rv_weight').value;
+  const amount = document.getElementById('rv_amount').value;
+  if(!weight && !amount){ showToast('Enter a weight, an amount, or both'); return; }
+
+  try{
+    await addDoc(RESERVES_COL, {
+      _created: Date.now(),
+      date: document.getElementById('rv_date').value || todayISO(),
+      reserveNum,
+      name,
+      weight: weight || '',
+      amount: amount || '',
+      notes: document.getElementById('rv_notes').value.trim(),
+      dateOut: '',
+      outcome: '',
+      confirmed: false,
+      createdAt: serverTimestamp()
+    });
+    ['rv_date','rv_num','rv_name','rv_weight','rv_amount','rv_notes'].forEach(id=>document.getElementById(id).value='');
+    showToast('Reserve added');
+  }catch(err){
+    showToast('Could not add — permission denied or offline');
+    console.error(err);
+  }
+});
+
+document.getElementById('reserveSearchBox').addEventListener('input', e=>{
+  reserveSearchTerm = e.target.value;
+  renderReserves();
+});
+
+// =================== WORKSHOP ORDERS ===================
+const KARAT_OPTIONS = ['Pure','22Ct','18Ct','14Ct','9Ct','Silver'];
+const PURITY_FACTORS = { Pure:1, '22Ct':0.916, '18Ct':0.750, '14Ct':0.585, '9Ct':0.375 }; // Silver excluded — different metal, not gold-equivalent
+
+function wsStatusOf(o){
+  if(o.confirmed) return 'verified';
+  if(o.receivedBySales) return 'received';
+  return 'open';
+}
+function wsBadge(status){
+  const map = {
+    open:['badge-pending','Open — Awaiting Sales'],
+    received:['badge-received','Received — Awaiting Admin'],
+    verified:['badge-confirmed','Verified & Locked']
+  };
+  const [cls,label] = map[status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function wsCanEditCore(o){
+  // Workshop can edit only while still open (before Sales acknowledges).
+  if(role === 'admin') return true;
+  if(role === 'workshop') return wsStatusOf(o) === 'open';
+  return false;
+}
+function wsCanReceive(o){
+  return (role === 'sales' || role === 'admin') && wsStatusOf(o) === 'open';
+}
+
+function renderWS(){
+  const counts = {all:wsOrders.length, open:0, received:0, verified:0};
+  wsOrders.forEach(o=>{ counts[wsStatusOf(o)]++; });
+
+  document.getElementById('wsCountStrip').innerHTML = `
+    <div class="count-card"><div class="n">${counts.all}</div><div class="l">Total</div></div>
+    <div class="count-card"><div class="n">${counts.open}</div><div class="l">Open — Awaiting Sales</div></div>
+    <div class="count-card"><div class="n">${counts.received}</div><div class="l">Awaiting Admin</div></div>
+    <div class="count-card"><div class="n">${counts.verified}</div><div class="l">Verified</div></div>
+  `;
+
+  const filtersEl3 = document.getElementById('wsFilters');
+  filtersEl3.innerHTML = ['all','open','received','verified'].map(f=>{
+    const labels = {all:'All',open:'Open',received:'Awaiting Admin',verified:'Verified'};
+    return `<div class="filter-chip ${wsActiveFilter===f?'active':''}" data-filter="${f}">${labels[f]}</div>`;
+  }).join('');
+  filtersEl3.querySelectorAll('.filter-chip').forEach(el=>{
+    el.onclick = ()=>{ wsActiveFilter = el.dataset.filter; renderWS(); };
+  });
+
+  let rows = wsOrders.slice().sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b._created||0)-(a._created||0));
+  if(wsActiveFilter !== 'all') rows = rows.filter(o=>wsStatusOf(o)===wsActiveFilter);
+  if(wsSearchTerm){
+    const t = wsSearchTerm.toLowerCase();
+    rows = rows.filter(o =>
+      (o.receiptNum||'').toLowerCase().includes(t) ||
+      (o.karat||'').toLowerCase().includes(t) ||
+      (o.notes||'').toLowerCase().includes(t)
+    );
+  }
+
+  const tbodyEl = document.getElementById('wsTbody');
+  const emptyEl = document.getElementById('wsEmptyState');
+  if(rows.length === 0){ tbodyEl.innerHTML=''; emptyEl.style.display='block'; renderWSMonthly(); return; }
+  emptyEl.style.display = 'none';
+
+  tbodyEl.innerHTML = rows.map(o=>{
+    const status = wsStatusOf(o);
+    const editCore = wsCanEditCore(o);
+    const canReceive = wsCanReceive(o);
+
+    const karatOptionsHtml = `<option value="">—</option>` + KARAT_OPTIONS.map(k=>
+      `<option value="${k}" ${o.karat===k?'selected':''}>${k}</option>`).join('');
+
+    return `<tr data-id="${o.id}">
+      <td>${wsBadge(status)}</td>
+      <td><input type="date" value="${o.date||''}" data-field="date" ${editCore?'':'disabled'}></td>
+      <td><input type="text" value="${o.receiptNum||''}" data-field="receiptNum" style="width:80px" ${editCore?'':'disabled'}></td>
+      <td><select data-field="karat" ${editCore?'':'disabled'}>${karatOptionsHtml}</select></td>
+      <td class="num-col"><input type="number" step="0.01" value="${fmtNum(o.weight)}" data-field="weight" ${editCore?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="1" value="${fmtNum(o.labour)}" data-field="labour" style="width:80px" ${editCore?'':'disabled'}></td>
+      <td><input type="text" value="${o.notes||''}" data-field="notes" style="min-width:120px" ${editCore?'':'disabled'}></td>
+      <td class="row-actions">
+        ${canReceive ? `<button class="btn btn-lock" data-action="ws-receive">Receive</button>` : ''}
+        ${role==='admin' && status==='received' ? `<button class="btn btn-lock" data-action="ws-verify">Verify</button>` : ''}
+        ${role==='admin' && status==='verified' ? `<button class="btn btn-unlock" data-action="ws-unlock">Unlock</button>` : ''}
+        ${role==='admin' ? `<button class="btn btn-ghost" data-action="ws-delete">✕</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  tbodyEl.querySelectorAll('input,select').forEach(inp=> inp.addEventListener('change', onWSFieldChange));
+  tbodyEl.querySelectorAll('[data-action]').forEach(btn=> btn.addEventListener('click', onWSAction));
+
+  renderWSMonthly();
+}
+
+function getWS(id){ return wsOrders.find(o=>o.id===id); }
+
+async function onWSFieldChange(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const field = e.target.dataset.field;
+  const o = getWS(id);
+  if(!o) return;
+  try{
+    await updateDoc(doc(db,'workshopOrders',id), { [field]: e.target.value });
+    showToast('Saved');
+  }catch(err){
+    showToast('Could not save — permission denied or offline');
+    console.error(err);
+    renderWS();
+  }
+}
+
+async function onWSAction(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const action = e.target.dataset.action;
+  const o = getWS(id);
+  if(!o) return;
+  try{
+    if(action === 'ws-receive'){
+      await updateDoc(doc(db,'workshopOrders',id), { receivedBySales: true, receivedAt: serverTimestamp() });
+      showToast('Marked as received');
+    }
+    if(action === 'ws-verify'){
+      await updateDoc(doc(db,'workshopOrders',id), { confirmed: true, confirmedAt: serverTimestamp() });
+      showToast('Verified and locked');
+    }
+    if(action === 'ws-unlock'){
+      await updateDoc(doc(db,'workshopOrders',id), { confirmed: false });
+      showToast('Unlocked for editing');
+    }
+    if(action === 'ws-delete'){
+      if(!confirm('Delete this workshop order? This cannot be undone.')) return;
+      await deleteDoc(doc(db,'workshopOrders',id));
+      showToast('Deleted');
+    }
+  }catch(err){
+    showToast('Action failed — permission denied or offline');
+    console.error(err);
+  }
+}
+
+document.getElementById('addWSBtn').addEventListener('click', async ()=>{
+  const receiptNum = document.getElementById('ws_receiptNum').value.trim();
+  const karat = document.getElementById('ws_karat').value;
+  if(!receiptNum || !karat){ showToast('Receipt # and Karat are required'); return; }
+  try{
+    await addDoc(WS_COL, {
+      _created: Date.now(),
+      date: document.getElementById('ws_date').value || todayISO(),
+      receiptNum,
+      karat,
+      weight: document.getElementById('ws_weight').value || '',
+      labour: document.getElementById('ws_labour').value || '',
+      notes: document.getElementById('ws_notes').value.trim(),
+      receivedBySales: false,
+      confirmed: false,
+      createdAt: serverTimestamp()
+    });
+    ['ws_receiptNum','ws_weight','ws_labour','ws_notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ws_karat').value = '';
+    showToast('Workshop order added');
+  }catch(err){
+    showToast('Could not add — permission denied or offline');
+    console.error(err);
+  }
+});
+
+document.getElementById('wsSearchBox').addEventListener('input', e=>{
+  wsSearchTerm = e.target.value;
+  renderWS();
+});
+
+function renderWSMonthly(){
+  const tbody = document.getElementById('wsMonthlyBody');
+  const empty = document.getElementById('wsMonthlyEmpty');
+
+  const verified = wsOrders.filter(o => o.confirmed);
+  const byMonth = {};
+  verified.forEach(o=>{
+    if(!o.date || !isNum(o.weight)) return;
+    const month = o.date.slice(0,7);
+    if(!byMonth[month]) byMonth[month] = { Pure:0, '22Ct':0, '18Ct':0, '14Ct':0, '9Ct':0, Silver:0, labour:0 };
+    const w = parseFloat(o.weight);
+    if(byMonth[month][o.karat] !== undefined) byMonth[month][o.karat] += w;
+    if(isNum(o.labour)) byMonth[month].labour += parseFloat(o.labour);
+  });
+
+  const months = Object.keys(byMonth).sort().reverse();
+  if(months.length === 0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  const monthLabel = (m)=>{
+    const [y,mo] = m.split('-');
+    return new Date(parseInt(y), parseInt(mo)-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  };
+  const g = (n)=> n.toFixed(2) + 'g';
+
+  tbody.innerHTML = months.map(m=>{
+    const d = byMonth[m];
+    const pureEquiv = d.Pure*PURITY_FACTORS.Pure + d['22Ct']*PURITY_FACTORS['22Ct'] + d['18Ct']*PURITY_FACTORS['18Ct']
+      + d['14Ct']*PURITY_FACTORS['14Ct'] + d['9Ct']*PURITY_FACTORS['9Ct'];
+    return `<tr>
+      <td>${monthLabel(m)}</td>
+      <td>${g(d.Pure)}</td><td>${g(d['22Ct'])}</td><td>${g(d['18Ct'])}</td><td>${g(d['14Ct'])}</td><td>${g(d['9Ct'])}</td>
+      <td>${g(d.Silver)}</td>
+      <td style="font-weight:600;">${g(pureEquiv)}</td>
+      <td>KSh ${d.labour.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+// =================== TC TRACKER (same fields/logic as Reserve) ===================
+function tcStatusOf(r){
+  if(r.confirmed) return 'confirmed';
+  if(r.dateOut) return 'closed';
+  return 'open';
+}
+function tcBadge(status){
+  const map = {
+    open:['badge-pending','Open'],
+    closed:['badge-closed','Closed — Pending Confirmation'],
+    confirmed:['badge-confirmed','Confirmed & Locked']
+  };
+  const [cls,label] = map[status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function tcCanEdit(r){
+  // Sales and admin can always edit, even after confirmation — a sales
+  // edit on a confirmed TC sends it back for admin re-verification.
+  return role === 'sales' || role === 'admin';
+}
+
+function renderTC(){
+  const counts = {all:tcs.length, open:0, closed:0, confirmed:0};
+  tcs.forEach(r=>{ counts[tcStatusOf(r)]++; });
+
+  const openWeight = tcs.filter(r=>tcStatusOf(r)!=='confirmed' && isNum(r.weight))
+    .reduce((s,r)=>s+parseFloat(r.weight),0);
+  const openAmount = tcs.filter(r=>tcStatusOf(r)!=='confirmed' && isNum(r.amount))
+    .reduce((s,r)=>s+parseFloat(r.amount),0);
+
+  document.getElementById('tcCountStrip').innerHTML = `
+    <div class="count-card"><div class="n">${counts.all}</div><div class="l">Total</div></div>
+    <div class="count-card"><div class="n">${counts.open}</div><div class="l">Open</div></div>
+    <div class="count-card"><div class="n">${counts.closed}</div><div class="l">Pending Confirmation</div></div>
+    <div class="count-card"><div class="n">${counts.confirmed}</div><div class="l">Confirmed</div></div>
+    <div class="count-card"><div class="n">${openWeight.toFixed(2)}g</div><div class="l">Weight Held (Open)</div></div>
+    <div class="count-card"><div class="n">KSh ${openAmount.toLocaleString()}</div><div class="l">Amount Held (Open)</div></div>
+  `;
+
+  const filtersEl4 = document.getElementById('tcFilters');
+  filtersEl4.innerHTML = ['all','open','closed','confirmed'].map(f=>{
+    const labels = {all:'All',open:'Open',closed:'Pending Confirmation',confirmed:'Confirmed'};
+    return `<div class="filter-chip ${tcActiveFilter===f?'active':''}" data-filter="${f}">${labels[f]}</div>`;
+  }).join('');
+  filtersEl4.querySelectorAll('.filter-chip').forEach(el=>{
+    el.onclick = ()=>{ tcActiveFilter = el.dataset.filter; renderTC(); };
+  });
+
+  let rows = tcs.slice().sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b._created||0)-(a._created||0));
+  if(tcActiveFilter !== 'all') rows = rows.filter(r=>tcStatusOf(r)===tcActiveFilter);
+  if(tcSearchTerm){
+    const t = tcSearchTerm.toLowerCase();
+    rows = rows.filter(r =>
+      (r.name||'').toLowerCase().includes(t) ||
+      (r.tcNum||'').toLowerCase().includes(t) ||
+      (r.notes||'').toLowerCase().includes(t)
+    );
+  }
+
+  const tbodyEl = document.getElementById('tcTbody');
+  const emptyEl = document.getElementById('tcEmptyState');
+  if(rows.length === 0){ tbodyEl.innerHTML=''; emptyEl.style.display='block'; return; }
+  emptyEl.style.display = 'none';
+
+  tbodyEl.innerHTML = rows.map(r=>{
+    const status = tcStatusOf(r);
+    const editable = tcCanEdit(r);
+
+    const outcomeSelect = `<select data-field="outcome" ${editable ? '' : 'disabled'}>
+        <option value="">—</option>
+        ${Object.entries(OUTCOME_LABELS).map(([k,v])=>`<option value="${k}" ${r.outcome===k?'selected':''}>${v}</option>`).join('')}
+      </select>`;
+
+    return `<tr data-id="${r.id}">
+      <td>${tcBadge(status)}</td>
+      <td><input type="date" value="${r.date||''}" data-field="date" ${editable?'':'disabled'}></td>
+      <td><input type="text" value="${r.tcNum||''}" data-field="tcNum" style="width:70px" ${editable?'':'disabled'}></td>
+      <td><input type="text" value="${r.name||''}" data-field="name" style="min-width:120px" ${editable?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="0.01" value="${fmtNum(r.weight)}" data-field="weight" style="width:70px" ${editable?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="1" value="${fmtNum(r.amount)}" data-field="amount" style="width:90px" ${editable?'':'disabled'}></td>
+      <td><input type="text" value="${r.notes||''}" data-field="notes" style="min-width:120px" ${editable?'':'disabled'}></td>
+      <td><input type="date" value="${r.dateOut||''}" data-field="dateOut" ${editable?'':'disabled'}></td>
+      <td>${outcomeSelect}</td>
+      <td class="row-actions">
+        ${role==='admin' ? (r.confirmed
+          ? `<button class="btn btn-unlock" data-action="tc-unlock">Unlock</button>`
+          : `<button class="btn btn-lock" data-action="tc-confirm" ${status==='closed'?'':'disabled'}>Confirm</button>`)
+          : ''}
+        ${role==='admin' ? `<button class="btn btn-ghost" data-action="tc-delete">✕</button>` : ''}
+        ${role==='sales' && r.confirmed ? `<span class="hint" style="margin:0;">Editing will send back for re-verification</span>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  tbodyEl.querySelectorAll('input,select').forEach(inp=> inp.addEventListener('change', onTCFieldChange));
+  tbodyEl.querySelectorAll('[data-action]').forEach(btn=> btn.addEventListener('click', onTCAction));
+}
+
+function getTC(id){ return tcs.find(r=>r.id===id); }
+
+async function onTCFieldChange(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const field = e.target.dataset.field;
+  const r = getTC(id);
+  if(!r) return;
+  const payload = { [field]: e.target.value };
+  if(role === 'sales' && r.confirmed){
+    payload.confirmed = false;
+  }
+  try{
+    await updateDoc(doc(db,'tcs',id), payload);
+    showToast(payload.confirmed === false && r.confirmed
+      ? 'Saved — sent back to Admin for re-verification'
+      : 'Saved');
+  }catch(err){
+    showToast('Could not save — permission denied or offline');
+    console.error(err);
+    renderTC();
+  }
+}
+
+async function onTCAction(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const action = e.target.dataset.action;
+  const r = getTC(id);
+  if(!r) return;
+  try{
+    if(action === 'tc-confirm'){
+      await updateDoc(doc(db,'tcs',id), { confirmed: true, confirmedAt: serverTimestamp() });
+      showToast('TC confirmed and locked');
+    }
+    if(action === 'tc-unlock'){
+      await updateDoc(doc(db,'tcs',id), { confirmed: false });
+      showToast('TC unlocked for editing');
+    }
+    if(action === 'tc-delete'){
+      if(!confirm('Delete this TC entry? This cannot be undone.')) return;
+      await deleteDoc(doc(db,'tcs',id));
+      showToast('Deleted');
+    }
+  }catch(err){
+    showToast('Action failed — permission denied or offline');
+    console.error(err);
+  }
+}
+
+document.getElementById('addTCBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('tc_name').value.trim();
+  const tcNum = document.getElementById('tc_num').value.trim();
+  if(!name || !tcNum){ showToast('Client name and TC # are required'); return; }
+  const weight = document.getElementById('tc_weight').value;
+  const amount = document.getElementById('tc_amount').value;
+  if(!weight && !amount){ showToast('Enter a weight, an amount, or both'); return; }
+
+  try{
+    await addDoc(TC_COL, {
+      _created: Date.now(),
+      date: document.getElementById('tc_date').value || todayISO(),
+      tcNum,
+      name,
+      weight: weight || '',
+      amount: amount || '',
+      notes: document.getElementById('tc_notes').value.trim(),
+      dateOut: '',
+      outcome: '',
+      confirmed: false,
+      createdAt: serverTimestamp()
+    });
+    ['tc_date','tc_num','tc_name','tc_weight','tc_amount','tc_notes'].forEach(id=>document.getElementById(id).value='');
+    showToast('TC added');
+  }catch(err){
+    showToast('Could not add — permission denied or offline');
+    console.error(err);
+  }
+});
+
+document.getElementById('tcSearchBox').addEventListener('input', e=>{
+  tcSearchTerm = e.target.value;
+  renderTC();
 });
 </script>
 </body>
