@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repair Tracker — SJ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --navy:#15234B;
+    --ivory:#F8F5F2;
+    --emerald:#034435;
+    --ruby:#942B2B;
+    --tanzanite:#8071CF;
+    --line:#E2DCD3;
+    --muted:#8A8478;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ivory);font-family:'Inter',sans-serif;color:var(--navy);}
+  header{
+    background:var(--navy);color:var(--ivory);padding:22px 28px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  }
+  header h1{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:28px;margin:0;letter-spacing:0.3px;}
+  header .sub{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tanzanite);margin-top:2px;}
+  .role-box{display:flex;align-items:center;gap:10px;background:rgba(248,245,242,0.08);padding:8px 14px;border-radius:8px;border:1px solid rgba(248,245,242,0.2);}
+  main{padding:24px 28px 60px;max-width:1500px;margin:0 auto;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:20px;}
+  .panel h2{font-family:'Cormorant Garamond',serif;font-size:20px;margin:0 0 14px;color:var(--navy);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:4px;}
+  .field input,.field select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:6px;font-size:13.5px;font-family:inherit;background:#fff;color:var(--navy);}
+  .field input:disabled{background:#F2F0EC;color:var(--muted);}
+  .btn{border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.3px;}
+  .btn-primary{background:var(--emerald);color:#fff;}
+  .btn-primary:hover{background:#053f31;}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--navy);}
+  .btn-ghost:hover{background:#F2F0EC;}
+  .btn-lock{background:var(--ruby);color:#fff;}
+  .btn-lock:hover{background:#7d2424;}
+  .btn-unlock{background:var(--tanzanite);color:#fff;}
+  .btn:disabled{opacity:0.35;cursor:not-allowed;}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-chip{padding:6px 13px;border-radius:20px;border:1px solid var(--line);font-size:12.5px;cursor:pointer;background:#fff;color:var(--navy);}
+  .filter-chip.active{background:var(--navy);color:var(--ivory);border-color:var(--navy);}
+  .search input{padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px;width:220px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 8px;border-bottom:2px solid var(--navy);white-space:nowrap;}
+  tbody td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:hover{background:#FBFAF8;}
+  tbody input{border:1px solid transparent;background:transparent;padding:4px 5px;border-radius:4px;font-size:13px;width:100%;font-family:inherit;color:var(--navy);}
+  tbody input:not(:disabled):hover{border-color:var(--line);}
+  tbody input:not(:disabled):focus{border-color:var(--tanzanite);outline:none;background:#fff;}
+  tbody input:disabled{color:#7A7468;}
+  .num-col input{width:60px;}
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap;}
+  .badge-pending{background:#FBE9D9;color:#8A5A20;}
+  .badge-ready{background:#DCEFE9;color:var(--emerald);}
+  .badge-confirmed{background:#F1DCDC;color:var(--ruby);}
+  .row-actions{display:flex;gap:6px;}
+  .row-actions button{padding:5px 10px;font-size:11.5px;}
+  .balance-pos{color:var(--emerald);font-weight:600;}
+  .balance-neg{color:var(--ruby);font-weight:600;}
+  .balance-zero{color:var(--muted);}
+  .empty{padding:40px;text-align:center;color:var(--muted);font-size:14px;}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;}
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:var(--ivory);padding:11px 18px;border-radius:8px;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,0.2);opacity:0;transform:translateY(10px);transition:all 0.25s ease;pointer-events:none;z-index:50;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .count-strip{display:flex;gap:18px;margin-bottom:16px;flex-wrap:wrap;}
+  .count-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 18px;min-width:120px;}
+  .count-card .n{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);}
+  .count-card .l{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:0.4px;}
+  .sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf7d;margin-right:6px;}
+  .sync-dot.off{background:var(--ruby);}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay" style="position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:100;">
+  <div style="background:#fff;border-radius:14px;padding:34px 36px;width:320px;box-shadow:0 20px 50px rgba(0,0,0,0.35);">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);margin-bottom:2px;">Repair Tracker</div>
+    <div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--tanzanite);margin-bottom:22px;">SJ</div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Role</label>
+      <select id="loginRole">
+        <option value="sales">Sales</option>
+        <option value="workshop">Workshop</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:8px;">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password">
+    </div>
+    <div id="loginError" style="color:var(--ruby);font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;">Enter</button>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>Repair Tracker</h1>
+    <div class="sub"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Connecting…</span></div>
+  </div>
+  <div class="role-box" id="roleBox" style="display:none;">
+    <span id="roleLabel" style="font-size:13px;font-weight:600;color:var(--ivory);"></span>
+    <button class="btn btn-ghost" id="switchRoleBtn" style="background:rgba(248,245,242,0.12);color:var(--ivory);border-color:rgba(248,245,242,0.3);">Switch Role</button>
+  </div>
+</header>
+
+<main>
+  <div class="count-strip" id="countStrip"></div>
+
+  <div class="panel" id="addPanel">
+    <h2>New Repair</h2>
+    <div class="grid">
+      <div class="field"><label>Date In</label><input type="date" id="f_date"></div>
+      <div class="field"><label>Repair #</label><input type="text" id="f_repairNum" placeholder="e.g. 3045"></div>
+      <div class="field"><label>Client Name</label><input type="text" id="f_name" placeholder="Client name"></div>
+      <div class="field"><label>Wt In (g)</label><input type="number" step="0.01" id="f_wtIn" placeholder="0.00"></div>
+      <div class="field"><label>Item Details</label><input type="text" id="f_item" placeholder="e.g. 1 Bangle"></div>
+      <div class="field"><label>Due Date</label><input type="date" id="f_due"></div>
+      <div class="field"><label>Remarks</label><input type="text" id="f_remarks" placeholder="Optional"></div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-primary" id="addBtn">Add Repair</button></div>
+    <div class="hint">Sales logs the item in. Workshop adds the out-weight once repaired; Admin confirms and locks when the client collects.</div>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <div class="filters" id="filters"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="search"><input type="text" id="searchBox" placeholder="Search name, repair #, item..."></div>
+        <button class="btn btn-ghost" id="exportBtn">Export to Excel</button>
+        <button class="btn btn-ghost" id="importBtn">Import from Excel</button>
+        <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;">
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th><th>Date In</th><th>Repair #</th><th>Client</th><th>Item Details</th>
+            <th>Wt In</th><th>Wt Out</th><th>Balance</th><th>Due Date</th><th>Date Collected</th><th>Remarks</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="emptyState" style="display:none;">No repairs match this view yet.</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+// ---- Firebase config -----------------------------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyDVXtsjkBk8Me_Cix8hHbLAuHSnyu39fCI",
+  authDomain: "sjewel-d60f7.firebaseapp.com",
+  projectId: "sjewel-d60f7",
+  storageBucket: "sjewel-d60f7.firebasestorage.app",
+  messagingSenderId: "715371047788",
+  appId: "1:715371047788:web:4a86d6a53e9d6189d4a149",
+  measurementId: "G-KFTK43RRWF"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const REPAIRS_COL = collection(db, 'repairs');
+
+// Each "role" maps to a real Firebase Auth account created in the console.
+const ROLE_EMAILS = {
+  sales: 'sales@sjewel.local',
+  workshop: 'workshop@sjewel.local',
+  admin: 'admin@sjewel.local'
+};
+const ROLE_LABELS = {sales:'Sales', workshop:'Workshop', admin:'Admin (You)'};
+const EMAIL_TO_ROLE = Object.fromEntries(Object.entries(ROLE_EMAILS).map(([k,v])=>[v,k]));
+// ----------------------------------------------------------------------
+
+let repairs = [];     // local cache of {id, ...fields}
+let role = null;
+let activeFilter = 'all';
+let searchTerm = '';
+let unsubscribe = null;
+
+const tbody = document.getElementById('tbody');
+const emptyState = document.getElementById('emptyState');
+const countStrip = document.getElementById('countStrip');
+const filtersEl = document.getElementById('filters');
+const addPanel = document.getElementById('addPanel');
+const toast = document.getElementById('toast');
+const syncDot = document.getElementById('syncDot');
+const syncLabel = document.getElementById('syncLabel');
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 2200);
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+// ---------------- Auth ----------------
+async function attemptLogin(){
+  const selected = document.getElementById('loginRole').value;
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  try{
+    await signInWithEmailAndPassword(auth, ROLE_EMAILS[selected], pw);
+    // onAuthStateChanged handles the rest
+  }catch(e){
+    errEl.textContent = 'Incorrect password, or that role account has not been set up yet.';
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', attemptLogin);
+document.getElementById('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') attemptLogin(); });
+document.getElementById('switchRoleBtn').addEventListener('click', async ()=>{
+  await signOut(auth);
+});
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    role = EMAIL_TO_ROLE[user.email] || null;
+    if(!role){
+      // unknown account signed in somehow; sign back out
+      signOut(auth);
+      return;
+    }
+    document.getElementById('roleLabel').textContent = ROLE_LABELS[role];
+    document.getElementById('roleBox').style.display = 'flex';
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginPassword').value = '';
+    startListening();
+  } else {
+    role = null;
+    document.getElementById('roleBox').style.display = 'none';
+    document.getElementById('loginOverlay').style.display = 'flex';
+    if(unsubscribe){ unsubscribe(); unsubscribe = null; }
+    repairs = [];
+  }
+});
+
+// ---------------- Firestore live sync ----------------
+function startListening(){
+  if(unsubscribe) return;
+  unsubscribe = onSnapshot(REPAIRS_COL, (snap)=>{
+    repairs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    syncDot.classList.remove('off');
+    syncLabel.textContent = 'Live — synced';
+    render();
+  }, (err)=>{
+    syncDot.classList.add('off');
+    syncLabel.textContent = 'Connection issue';
+    console.error(err);
+  });
+}
+
+function statusOf(r){
+  if(r.confirmed) return 'confirmed';
+  if(r.wtOut !== '' && r.wtOut !== null && r.wtOut !== undefined) return 'ready';
+  return 'pending';
+}
+function badge(status){
+  const map = {
+    pending:['badge-pending','Pending Workshop'],
+    ready:['badge-ready','Ready for Collection'],
+    confirmed:['badge-confirmed','Confirmed & Locked']
+  };
+  const [cls,label] = map[status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function canEditCore(r){
+  if(r.confirmed) return role === 'admin';
+  return role === 'sales' || role === 'admin';
+}
+function canEditWtOut(r){
+  if(r.confirmed) return role === 'admin';
+  return role === 'workshop' || role === 'admin';
+}
+function fmtNum(v){ return (v==='' || v===null || v===undefined) ? '' : v; }
+
+function render(){
+  const counts = {all:repairs.length, pending:0, ready:0, confirmed:0};
+  repairs.forEach(r=>{ counts[statusOf(r)]++; });
+
+  countStrip.innerHTML = `
+    <div class="count-card"><div class="n">${counts.all}</div><div class="l">Total</div></div>
+    <div class="count-card"><div class="n">${counts.pending}</div><div class="l">Pending Workshop</div></div>
+    <div class="count-card"><div class="n">${counts.ready}</div><div class="l">Ready for Collection</div></div>
+    <div class="count-card"><div class="n">${counts.confirmed}</div><div class="l">Confirmed</div></div>
+  `;
+
+  filtersEl.innerHTML = ['all','pending','ready','confirmed'].map(f=>{
+    const labels = {all:'All',pending:'Pending Workshop',ready:'Ready',confirmed:'Confirmed'};
+    return `<div class="filter-chip ${activeFilter===f?'active':''}" data-filter="${f}">${labels[f]}</div>`;
+  }).join('');
+  filtersEl.querySelectorAll('.filter-chip').forEach(el=>{
+    el.onclick = ()=>{ activeFilter = el.dataset.filter; render(); };
+  });
+
+  addPanel.style.display = (role === 'workshop') ? 'none' : 'block';
+
+  let rows = repairs.slice().sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b._created||0)-(a._created||0));
+  if(activeFilter !== 'all') rows = rows.filter(r=>statusOf(r)===activeFilter);
+  if(searchTerm){
+    const t = searchTerm.toLowerCase();
+    rows = rows.filter(r =>
+      (r.name||'').toLowerCase().includes(t) ||
+      (r.repairNum||'').toLowerCase().includes(t) ||
+      (r.item||'').toLowerCase().includes(t)
+    );
+  }
+
+  if(rows.length === 0){ tbody.innerHTML = ''; emptyState.style.display = 'block'; return; }
+  emptyState.style.display = 'none';
+
+  tbody.innerHTML = rows.map(r=>{
+    const status = statusOf(r);
+    const locked = r.confirmed;
+    const editCore = canEditCore(r);
+    const editOut = canEditWtOut(r);
+    const editAdminOnly = role === 'admin';
+
+    const balance = (r.wtOut !== '' && r.wtOut !== null && r.wtOut !== undefined && r.wtIn !== '' && r.wtIn !== null)
+      ? (parseFloat(r.wtOut) - parseFloat(r.wtIn)) : null;
+    let balCls = 'balance-zero', balTxt = '—';
+    if(balance !== null && !isNaN(balance)){
+      balTxt = (balance>0?'+':'') + balance.toFixed(2) + 'g';
+      balCls = balance > 0 ? 'balance-pos' : balance < 0 ? 'balance-neg' : 'balance-zero';
+    }
+
+    return `<tr data-id="${r.id}">
+      <td>${badge(status)}</td>
+      <td><input type="date" value="${r.date||''}" data-field="date" ${editCore?'':'disabled'}></td>
+      <td><input type="text" value="${r.repairNum||''}" data-field="repairNum" style="width:70px" ${editCore?'':'disabled'}></td>
+      <td><input type="text" value="${r.name||''}" data-field="name" style="min-width:120px" ${editCore?'':'disabled'}></td>
+      <td><input type="text" value="${r.item||''}" data-field="item" style="min-width:130px" ${editCore?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="0.01" value="${fmtNum(r.wtIn)}" data-field="wtIn" ${editCore?'':'disabled'}></td>
+      <td class="num-col"><input type="number" step="0.01" value="${fmtNum(r.wtOut)}" data-field="wtOut" ${editOut?'':'disabled'}></td>
+      <td class="${balCls}">${balTxt}</td>
+      <td><input type="date" value="${r.due||''}" data-field="due" ${editCore?'':'disabled'}></td>
+      <td><input type="date" value="${r.collected||''}" data-field="collected" ${editAdminOnly?'':'disabled'}></td>
+      <td><input type="text" value="${r.remarks||''}" data-field="remarks" style="min-width:110px" ${(editCore||editAdminOnly)?'':'disabled'}></td>
+      <td class="row-actions">
+        ${role==='admin' ? (locked
+          ? `<button class="btn btn-unlock" data-action="unlock">Unlock</button>`
+          : `<button class="btn btn-lock" data-action="confirm" ${status==='ready'?'':'disabled'}>Confirm</button>`)
+          : ''}
+        ${role==='admin' ? `<button class="btn btn-ghost" data-action="delete">✕</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('input').forEach(inp=> inp.addEventListener('change', onFieldChange));
+  tbody.querySelectorAll('[data-action]').forEach(btn=> btn.addEventListener('click', onAction));
+}
+
+function getRow(id){ return repairs.find(r=>r.id===id); }
+
+async function onFieldChange(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const field = e.target.dataset.field;
+  const r = getRow(id);
+  if(!r) return;
+  try{
+    await updateDoc(doc(db,'repairs',id), { [field]: e.target.value });
+    showToast('Saved');
+  }catch(err){
+    showToast('Could not save — permission denied or offline');
+    console.error(err);
+    render(); // revert visible value to last known-good state
+  }
+}
+
+async function onAction(e){
+  const tr = e.target.closest('tr');
+  const id = tr.dataset.id;
+  const action = e.target.dataset.action;
+  const r = getRow(id);
+  if(!r) return;
+  try{
+    if(action === 'confirm'){
+      await updateDoc(doc(db,'repairs',id), {
+        confirmed: true,
+        collected: r.collected || todayISO(),
+        confirmedAt: serverTimestamp()
+      });
+      showToast('Row confirmed and locked');
+    }
+    if(action === 'unlock'){
+      await updateDoc(doc(db,'repairs',id), { confirmed: false });
+      showToast('Row unlocked for editing');
+    }
+    if(action === 'delete'){
+      if(!confirm('Delete this repair entry? This cannot be undone.')) return;
+      await deleteDoc(doc(db,'repairs',id));
+      showToast('Deleted');
+    }
+  }catch(err){
+    showToast('Action failed — permission denied or offline');
+    console.error(err);
+  }
+}
+
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('f_name').value.trim();
+  const repairNum = document.getElementById('f_repairNum').value.trim();
+  if(!name || !repairNum){ showToast('Client name and repair # are required'); return; }
+  const newRow = {
+    _created: Date.now(),
+    date: document.getElementById('f_date').value || todayISO(),
+    repairNum,
+    name,
+    wtIn: document.getElementById('f_wtIn').value,
+    item: document.getElementById('f_item').value.trim(),
+    due: document.getElementById('f_due').value,
+    remarks: document.getElementById('f_remarks').value.trim(),
+    wtOut: '',
+    collected: '',
+    confirmed: false,
+    createdAt: serverTimestamp()
+  };
+  try{
+    await addDoc(REPAIRS_COL, newRow);
+    ['f_date','f_repairNum','f_name','f_wtIn','f_item','f_due','f_remarks'].forEach(id=>document.getElementById(id).value='');
+    showToast('Repair added');
+  }catch(err){
+    showToast('Could not add — permission denied or offline');
+    console.error(err);
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', e=>{ searchTerm = e.target.value; render(); });
+
+// ---------------- Export ----------------
+function exportToExcel(){
+  const sorted = repairs.slice().sort((a,b)=> (a.date||'').localeCompare(b.date||'') || (a._created||0)-(b._created||0));
+  const data = sorted.map(r=>{
+    const wtIn = r.wtIn==='' || r.wtIn==null ? '' : parseFloat(r.wtIn);
+    const wtOut = r.wtOut==='' || r.wtOut==null ? '' : parseFloat(r.wtOut);
+    const balance = (wtIn!=='' && wtOut!=='') ? +(wtOut - wtIn).toFixed(2) : '';
+    return {
+      'DATE': r.date||'', 'REPAIR NUM': r.repairNum||'', 'NAME': r.name||'',
+      'WT IN': wtIn, 'WT OUT': wtOut, 'BALANCE': balance,
+      'ITEM DETAILS': r.item||'', 'DUE DATE': r.due||'', 'DATE COLLECTED': r.collected||'',
+      'STATUS': statusOf(r)==='pending'?'Pending Workshop':statusOf(r)==='ready'?'Ready for Collection':'Confirmed',
+      'REMARKS': r.remarks||''
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = [{wch:12},{wch:10},{wch:22},{wch:8},{wch:8},{wch:9},{wch:22},{wch:12},{wch:14},{wch:18},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Repairs');
+  XLSX.writeFile(wb, `SJ_Repairs_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('Exported');
+}
+
+// ---------------- Import ----------------
+function findCol(headerRow, candidates){
+  for(const cand of candidates){
+    const idx = headerRow.findIndex(h => (h||'').toString().trim().toLowerCase() === cand);
+    if(idx !== -1) return idx;
+  }
+  return -1;
+}
+function excelDateToISO(val){
+  if(val===null||val===undefined||val==='') return '';
+  if(val instanceof Date) return val.toISOString().slice(0,10);
+  if(typeof val === 'number'){
+    const d = XLSX.SSF.parse_date_code(val);
+    if(!d) return '';
+    return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const parsed = new Date(val);
+  if(!isNaN(parsed)) return parsed.toISOString().slice(0,10);
+  return '';
+}
+
+async function importFromExcel(file){
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  let sheetName = wb.SheetNames.find(n => /repair/i.test(n)) || wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+  if(rows.length < 2){ showToast('No data found in that sheet'); return; }
+
+  const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
+  const col = {
+    date: findCol(header,['date']), num: findCol(header,['repair num']), name: findCol(header,['name']),
+    wtIn: findCol(header,['wt in']), wtOut: findCol(header,['wt out']), collected: findCol(header,['date collected']),
+    item: findCol(header,['item details']), due: findCol(header,['due date']), remarks: findCol(header,['remarks'])
+  };
+  if(col.num === -1 || col.name === -1){ showToast('Could not find Repair Num / Name columns in that sheet'); return; }
+
+  const existingNums = new Set(repairs.map(r => (r.repairNum||'').toString().trim()));
+  let added = 0, skipped = 0;
+
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if(!row) continue;
+    const name = col.name>-1 ? row[col.name] : null;
+    const num = col.num>-1 ? row[col.num] : null;
+    if(!name || String(name).trim().toUpperCase().startsWith('TOTAL')) continue;
+    if(num===null||num===undefined||num==='') continue;
+    const numStr = String(num).trim();
+    if(existingNums.has(numStr)){ skipped++; continue; }
+
+    try{
+      await addDoc(REPAIRS_COL, {
+        _created: Date.now(),
+        date: col.date>-1 ? excelDateToISO(row[col.date]) : '',
+        repairNum: numStr,
+        name: String(name).trim(),
+        wtIn: col.wtIn>-1 && row[col.wtIn]!==null ? row[col.wtIn] : '',
+        wtOut: col.wtOut>-1 && row[col.wtOut]!==null ? row[col.wtOut] : '',
+        item: col.item>-1 && row[col.item]!==null ? String(row[col.item]).trim() : '',
+        due: col.due>-1 ? excelDateToISO(row[col.due]) : '',
+        remarks: col.remarks>-1 && row[col.remarks]!==null ? String(row[col.remarks]).trim() : '',
+        collected: col.collected>-1 ? excelDateToISO(row[col.collected]) : '',
+        confirmed: false,
+        createdAt: serverTimestamp()
+      });
+      existingNums.add(numStr);
+      added++;
+    }catch(err){
+      console.error('Row import failed', err);
+    }
+  }
+  showToast(`Imported ${added} new repair${added===1?'':'s'}${skipped?`, skipped ${skipped} duplicate${skipped===1?'':'s'}`:''}`);
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{ await importFromExcel(file); }
+  catch(err){ showToast('Import failed — check the file format'); console.error(err); }
+  e.target.value = '';
+});
+</script>
+</body>
+</html>
